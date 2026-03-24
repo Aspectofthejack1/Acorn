@@ -4,7 +4,8 @@
       "Bash(xargs grep:*)",
       "Read(//c/Users/Jack/.m2/repository/me/melinoe/Melinoe/1.0.1/**)",
       "Bash(jar tf:*)",
-      "Bash(jar xf:*)"
+      "Bash(jar xf:*)",
+      "Bash(gh repo:*)"
     ]
   }
 }

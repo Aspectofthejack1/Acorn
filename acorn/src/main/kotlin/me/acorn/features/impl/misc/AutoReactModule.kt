@@ -28,6 +28,7 @@ object AutoReactModule : Module(
     val ggUnholy by BooleanSetting("Unholy", true, desc = "React to Unholy drops.").withDependency { autoGG }
     val ggCompanion by BooleanSetting("Companion", true, desc = "React to Companion drops.").withDependency { autoGG }
     val ggTranscend by BooleanSetting("Transcend", true, desc = "React when a player fully transcends a class.").withDependency { autoGG }
+    val ggCraft by BooleanSetting("Craft", true, desc = "React when a player crafts a notable item.").withDependency { autoGG }
 
     private var lastSent = 0L
     private const val COOLDOWN_MS = 1500L
@@ -58,6 +59,10 @@ object AutoReactModule : Module(
         """^\[.+\]\S* \S+ Has just fully transcended \w+! \(\d/6\)\.$"""
     )
 
+    // Matches server craft broadcasts — only fires on system packets so players can't fake it.
+    // e.g. "[New York, Hub-1]𕼒Ͱ AnotherSpinner has just crafted Exodus 𖀐"
+    private val CRAFT_PATTERN = Regex("""^\[.+\]\S* \S+ has just crafted .+""")
+
     // Matches pity mod announcements in player chat
     // e.g. "[BLOODSHOT] Dropped Martyr at 27 pity from Raphael's Chamber!"
     private val GG_PATTERN_RARITY = Regex(
@@ -69,6 +74,21 @@ object AutoReactModule : Module(
         Item.Rarity.UNHOLY -> ggUnholy
         Item.Rarity.COMPANION -> ggCompanion
         else -> false
+    }
+
+    /**
+     * Checks if [msg] is a server broadcast craft for an enabled rarity.
+     * Format: "[Server]<icons> PlayerName has just crafted ItemName <icon>"
+     */
+    private fun isNotableCraft(msg: String): Boolean {
+        val craftIndex = msg.indexOf(" has just crafted ")
+        if (craftIndex == -1) return false
+        val itemStart = craftIndex + " has just crafted ".length
+        val matched = Item.entries
+            .filter { msg.indexOf(it.displayName, itemStart) == itemStart }
+            .maxByOrNull { it.displayName.length }
+            ?: return false
+        return rarityEnabled(matched.rarity)
     }
 
     /**
@@ -138,6 +158,12 @@ object AutoReactModule : Module(
             }
 
             if (isNotableBroadcastDrop(msg)) {
+                lastSent = now
+                sendGG()
+                return@on
+            }
+
+            if (ggCraft && CRAFT_PATTERN.containsMatchIn(msg) && isOnSameServer(msg) && isNotableCraft(msg)) {
                 lastSent = now
                 sendGG()
             }
