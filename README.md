@@ -1,6 +1,7 @@
 # Acorn
 
 [![Modrinth](https://img.shields.io/badge/Modrinth-Download-00AF5C?logo=modrinth)](https://modrinth.com/mod/acornaddon)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord)](https://serverhub.xyz/archon)
 
 A [Fabric](https://fabricmc.net/) mod addon for **Telos Realms** (Minecraft 1.21.10) that extends [Melinoe](https://modrinth.com/mod/melinoe) with quality-of-life features.
 
